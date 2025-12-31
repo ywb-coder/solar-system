@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系模拟系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <!-- 控制面板 -->
+    <div id="control-panel">
+        <h2>控制面板</h2>
+        
+        <div class="control-group">
+            <label>时间速度：</label>
+            <input type="range" id="time-speed" min="0" max="10" value="1" step="0.1">
+            <span id="time-speed-value">1.0x</span>
+        </div>
+        
+        <div class="control-group">
+            <button id="pause-btn">暂停</button>
+            <button id="reset-btn">重置</button>
+        </div>
+        
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="show-orbits" checked> 显示轨道
+            </label>
+        </div>
+        
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="show-labels" checked> 显示标签
+            </label>
+        </div>
+    </div>
+    
+    <!-- 信息面板 -->
+    <div id="info-panel">
+        <h3 id="info-title">点击行星查看信息</h3>
+        <div id="info-content"></div>
+    </div>
+    
+    <!-- 行星选择器 -->
+    <div id="planet-selector">
+        <h3>快速聚焦</h3>
+        <button class="planet-btn" data-planet="sun">太阳</button>
+        <button class="planet-btn" data-planet="mercury">水星</button>
+        <button class="planet-btn" data-planet="venus">金星</button>
+        <button class="planet-btn" data-planet="earth">地球</button>
+        <button class="planet-btn" data-planet="mars">火星</button>
+        <button class="planet-btn" data-planet="jupiter">木星</button>
+        <button class="planet-btn" data-planet="saturn">土星</button>
+        <button class="planet-btn" data-planet="uranus">天王星</button>
+        <button class="planet-btn" data-planet="neptune">海王星</button>
+    </div>
+    
+    <!-- 加载提示 -->
+    <div id="loading">加载中...</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="orbit-controls.js"></script>
+    <script src="solar-system.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
+
