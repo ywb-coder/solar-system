@@ -116,4 +116,4 @@ const i18n = {
 };
 
 // 当前语言
-let currentLanguage = 'zh';
+let currentLanguage = 'en';
