@@ -15,6 +15,12 @@ class SolarSystem {
         this.focusedPlanet = null; // 当前聚焦的天体
         this.focusOffset = null; // 聚焦时的相机偏移量
         this.isFocusAnimating = false; // 是否正在执行聚焦动画
+
+        // 银河系运动参数
+        this.galaxyRotation = 0;
+        this.galaxyRotationSpeed = 0.002; // 银河系旋转速度
+        this.solarSystemGroup = null; // 包含整个太阳系的组
+        this.galaxyCenter = new THREE.Vector3(0, 0, 0); // 银河系中心
         
         // 天文数据（相对比例）
         this.planetData = {
@@ -187,7 +193,7 @@ class SolarSystem {
     init() {
         // 创建场景
         this.scene = new THREE.Scene();
-        
+
         // 创建相机
         this.camera = new THREE.PerspectiveCamera(
             75,
@@ -196,7 +202,7 @@ class SolarSystem {
             10000
         );
         this.camera.position.set(0, 200, 400);
-        
+
         // 创建渲染器
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -204,7 +210,7 @@ class SolarSystem {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.container.appendChild(this.renderer.domElement);
-        
+
         // 创建轨道控制器
         window.currentOrbitControls = null;
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -216,26 +222,33 @@ class SolarSystem {
         this.controls.rotateSpeed = 0.2;  // 降低旋转速度
         this.controls.zoomSpeed = 0.5;  // 降低缩放速度
         this.controls.panSpeed = 0.3;  // 降低平移速度
-        
+
+        // 创建太阳系组（包含所有太阳系元素）
+        this.solarSystemGroup = new THREE.Group();
+        this.scene.add(this.solarSystemGroup);
+
         // 添加星空背景
         this.createStarField();
-        
+
         // 添加光照
         this.setupLighting();
-        
+
         // 创建太阳和行星
         this.createSun();
         this.createPlanets();
-        
+
         // 创建轨道线
         this.createOrbits();
-        
+
         // 创建标签
         this.createLabels();
-        
+
+        // 创建银河系中心指示器（可选，用于视觉参考）
+        this.createGalaxyCenterIndicator();
+
         // 处理窗口大小变化
         window.addEventListener('resize', () => this.onWindowResize());
-        
+
         // 开始动画
         this.animate();
     }
@@ -293,7 +306,7 @@ class SolarSystem {
         const sun = new THREE.Mesh(geometry, material);
         sun.userData = { name: 'sun', data: data };
         this.planets.sun = sun;
-        this.scene.add(sun);
+        this.solarSystemGroup.add(sun);
         
         // 添加光晕效果
         const glowGeometry = new THREE.SphereGeometry(data.radius * 1.2, 64, 64);
@@ -337,7 +350,7 @@ class SolarSystem {
             };
             
             this.planets[key] = planet;
-            this.scene.add(planet);
+            this.solarSystemGroup.add(planet);
             
             // 添加土星环
             if (data.hasRings) {
@@ -458,7 +471,7 @@ class SolarSystem {
             
             const orbit = new THREE.Line(geometry, material);
             this.orbits[key] = orbit;
-            this.scene.add(orbit);
+            this.solarSystemGroup.add(orbit);
         });
     }
     
@@ -502,8 +515,34 @@ class SolarSystem {
             sprite.position.set(data.distance, data.radius + 5, 0);
         }
 
-        this.labels[key] = sprite;
-        this.scene.add(sprite);
+            this.labels[key] = sprite;
+            this.solarSystemGroup.add(sprite);
+    }
+
+    createGalaxyCenterIndicator() {
+        // 创建银河系中心的视觉指示（可选）
+        const centerGeometry = new THREE.SphereGeometry(2, 16, 16);
+        const centerMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3
+        });
+        const centerIndicator = new THREE.Mesh(centerGeometry, centerMaterial);
+        centerIndicator.position.copy(this.galaxyCenter);
+        this.scene.add(centerIndicator);
+
+        // 添加银河系中心的环
+        const ringGeometry = new THREE.RingGeometry(3, 3.2, 32);
+        const ringMaterial = new THREE.MeshBasicMaterial({
+            color: 0x6666ff,
+            transparent: true,
+            opacity: 0.2,
+            side: THREE.DoubleSide
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.copy(this.galaxyCenter);
+        this.scene.add(ring);
     }
 
     updateLabels(lang) {
@@ -530,9 +569,15 @@ class SolarSystem {
     
     update(deltaTime) {
         if (this.isPaused) return;
-        
+
         const speed = this.timeSpeed * deltaTime;
-        
+
+        // 更新银河系旋转（太阳系围绕银河系中心运动）
+        if (!this.isFocusAnimating && !this.focusedPlanet) {
+            this.galaxyRotation += this.galaxyRotationSpeed * speed;
+            this.solarSystemGroup.rotation.y = this.galaxyRotation;
+        }
+
         // 更新太阳旋转
         if (this.planets.sun) {
             this.planets.sun.rotation.y += this.planetData.sun.rotationSpeed * speed;
@@ -604,12 +649,16 @@ class SolarSystem {
             
             // 动画完成后：每帧跟随天体移动
             const focusedPlanet = this.planets[this.focusedPlanet];
-            
-            // 更新控制器目标为天体当前位置（跟随天体移动）
-            this.controls.target.copy(focusedPlanet.position);
-            
+
+            // 获取天体的世界坐标（考虑太阳系组的旋转）
+            const worldPosition = new THREE.Vector3();
+            focusedPlanet.getWorldPosition(worldPosition);
+
+            // 更新控制器目标为天体的世界坐标
+            this.controls.target.copy(worldPosition);
+
             // 更新相机位置，保持相对偏移（跟随天体移动）
-            const newCameraPosition = new THREE.Vector3().addVectors(focusedPlanet.position, this.focusOffset);
+            const newCameraPosition = new THREE.Vector3().addVectors(worldPosition, this.focusOffset);
             this.camera.position.copy(newCameraPosition);
             
             // 更新控制器的内部状态，使其与当前相机位置同步
