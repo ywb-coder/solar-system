@@ -11,7 +11,10 @@
     
     <!-- 控制面板 -->
     <div id="control-panel">
-        <h2>控制面板</h2>
+        <div class="panel-header">
+            <h2>控制面板</h2>
+            <button id="lang-toggle">🌐 EN</button>
+        </div>
         
         <div class="control-group">
             <label>时间速度：</label>
@@ -62,6 +65,7 @@
     <div id="loading">加载中...</div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="i18n.js"></script>
     <script src="orbit-controls.js"></script>
     <script src="solar-system.js"></script>
     <script src="main.js"></script>

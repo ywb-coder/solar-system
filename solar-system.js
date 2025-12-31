@@ -27,9 +27,9 @@ class SolarSystem {
                 orbitSpeed: 0,
                 emissive: true,
                 info: {
-                    diameter: '1,392,700 公里',
-                    mass: '1.989 × 10³⁰ 千克',
-                    temperature: '5,778 K',
+                    diameter: { value: '1,392,700', unit: 'km' },
+                    mass: '1.989 × 10³⁰',
+                    temperature: { value: '5,778', unit: 'K' },
                     type: 'G型主序星'
                 }
             },
@@ -40,13 +40,13 @@ class SolarSystem {
                 color: 0x8c7853,
                 rotationSpeed: 0.02,
                 orbitSpeed: 0.04,
-                eccentricity: 0.206, // 轨道偏心率
-                inclination: 7.0, // 轨道倾角（度）
+                eccentricity: 0.206,
+                inclination: 7.0,
                 info: {
-                    diameter: '4,879 公里',
-                    mass: '3.301 × 10²³ 千克',
-                    distance: '57.9 × 10⁶ 公里',
-                    period: '88 天',
+                    diameter: { value: '4,879', unit: 'km' },
+                    mass: '3.301 × 10²³',
+                    distance: { value: '57.9', unit: 'million km' },
+                    period: { value: '88', unit: 'days' },
                     eccentricity: '0.206',
                     inclination: '7.0°'
                 }
@@ -61,10 +61,10 @@ class SolarSystem {
                 eccentricity: 0.007,
                 inclination: 3.4,
                 info: {
-                    diameter: '12,104 公里',
-                    mass: '4.867 × 10²⁴ 千克',
-                    distance: '108.2 × 10⁶ 公里',
-                    period: '225 天',
+                    diameter: { value: '12,104', unit: 'km' },
+                    mass: '4.867 × 10²⁴',
+                    distance: { value: '108.2', unit: 'million km' },
+                    period: { value: '225', unit: 'days' },
                     eccentricity: '0.007',
                     inclination: '3.4°'
                 }
@@ -80,10 +80,10 @@ class SolarSystem {
                 inclination: 0.0,
                 hasMoon: true,
                 info: {
-                    diameter: '12,756 公里',
-                    mass: '5.972 × 10²⁴ 千克',
-                    distance: '149.6 × 10⁶ 公里',
-                    period: '365.25 天',
+                    diameter: { value: '12,756', unit: 'km' },
+                    mass: '5.972 × 10²⁴',
+                    distance: { value: '149.6', unit: 'million km' },
+                    period: { value: '365.25', unit: 'days' },
                     eccentricity: '0.017',
                     inclination: '0.0°'
                 }
@@ -98,10 +98,10 @@ class SolarSystem {
                 eccentricity: 0.094,
                 inclination: 1.9,
                 info: {
-                    diameter: '6,792 公里',
-                    mass: '6.39 × 10²³ 千克',
-                    distance: '227.9 × 10⁶ 公里',
-                    period: '687 天',
+                    diameter: { value: '6,792', unit: 'km' },
+                    mass: '6.39 × 10²³',
+                    distance: { value: '227.9', unit: 'million km' },
+                    period: { value: '687', unit: 'days' },
                     eccentricity: '0.094',
                     inclination: '1.9°'
                 }
@@ -116,10 +116,10 @@ class SolarSystem {
                 eccentricity: 0.049,
                 inclination: 1.3,
                 info: {
-                    diameter: '142,984 公里',
-                    mass: '1.898 × 10²⁷ 千克',
-                    distance: '778.5 × 10⁶ 公里',
-                    period: '12 年',
+                    diameter: { value: '142,984', unit: 'km' },
+                    mass: '1.898 × 10²⁷',
+                    distance: { value: '778.5', unit: 'million km' },
+                    period: { value: '12', unit: 'years' },
                     eccentricity: '0.049',
                     inclination: '1.3°'
                 }
@@ -135,10 +135,10 @@ class SolarSystem {
                 inclination: 2.5,
                 hasRings: true,
                 info: {
-                    diameter: '120,536 公里',
-                    mass: '5.683 × 10²⁶ 千克',
-                    distance: '1,432 × 10⁶ 公里',
-                    period: '29 年',
+                    diameter: { value: '120,536', unit: 'km' },
+                    mass: '5.683 × 10²⁶',
+                    distance: { value: '1,432', unit: 'million km' },
+                    period: { value: '29', unit: 'years' },
                     eccentricity: '0.057',
                     inclination: '2.5°'
                 }
@@ -153,10 +153,10 @@ class SolarSystem {
                 eccentricity: 0.046,
                 inclination: 0.8,
                 info: {
-                    diameter: '51,118 公里',
-                    mass: '8.681 × 10²⁵ 千克',
-                    distance: '2,867 × 10⁶ 公里',
-                    period: '84 年',
+                    diameter: { value: '51,118', unit: 'km' },
+                    mass: '8.681 × 10²⁵',
+                    distance: { value: '2,867', unit: 'million km' },
+                    period: { value: '84', unit: 'years' },
                     eccentricity: '0.046',
                     inclination: '0.8°'
                 }
@@ -171,10 +171,10 @@ class SolarSystem {
                 eccentricity: 0.009,
                 inclination: 1.8,
                 info: {
-                    diameter: '49,528 公里',
-                    mass: '1.024 × 10²⁶ 千克',
-                    distance: '4,515 × 10⁶ 公里',
-                    period: '165 年',
+                    diameter: { value: '49,528', unit: 'km' },
+                    mass: '1.024 × 10²⁶',
+                    distance: { value: '4,515', unit: 'million km' },
+                    period: { value: '165', unit: 'years' },
                     eccentricity: '0.009',
                     inclination: '1.8°'
                 }
@@ -465,35 +465,66 @@ class SolarSystem {
     createLabels() {
         const loader = new THREE.FontLoader();
         // 使用简单的文本精灵代替字体加载
+        const texts = typeof i18n !== 'undefined' && i18n[currentLanguage] ? i18n[currentLanguage].planets : {};
+
         Object.keys(this.planetData).forEach(key => {
             const data = this.planetData[key];
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 64;
-            
-            context.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            
-            context.fillStyle = '#ffffff';
-            context.font = '32px Arial';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            context.fillText(data.name, canvas.width / 2, canvas.height / 2);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(20, 5, 1);
-            
-            if (key === 'sun') {
-                sprite.position.set(0, this.planetData.sun.radius + 10, 0);
-            } else {
-                sprite.position.set(data.distance, data.radius + 5, 0);
+            const planetName = texts[key] || data.name;
+
+            this.createLabel(key, planetName);
+        });
+    }
+
+    createLabel(key, text) {
+        const data = this.planetData[key];
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 64;
+
+        context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.fillStyle = '#ffffff';
+        context.font = '32px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(20, 5, 1);
+
+        if (key === 'sun') {
+            sprite.position.set(0, this.planetData.sun.radius + 10, 0);
+        } else {
+            sprite.position.set(data.distance, data.radius + 5, 0);
+        }
+
+        this.labels[key] = sprite;
+        this.scene.add(sprite);
+    }
+
+    updateLabels(lang) {
+        const texts = typeof i18n !== 'undefined' && i18n[lang] ? i18n[lang].planets : {};
+
+        Object.keys(this.planetData).forEach(key => {
+            const planetName = texts[key] || this.planetData[key].name;
+
+            // 移除旧标签
+            if (this.labels[key]) {
+                this.scene.remove(this.labels[key]);
+                if (this.labels[key].material) {
+                    if (this.labels[key].material.map) {
+                        this.labels[key].material.map.dispose();
+                    }
+                    this.labels[key].material.dispose();
+                }
             }
-            
-            this.labels[key] = sprite;
-            this.scene.add(sprite);
+
+            // 创建新标签
+            this.createLabel(key, planetName);
         });
     }
     
