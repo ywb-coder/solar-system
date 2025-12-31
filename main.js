@@ -40,6 +40,12 @@ function setupEventListeners() {
         solarSystem.reset();
     });
     
+    // 复位镜头按钮
+    const resetCameraBtn = document.getElementById('reset-camera-btn');
+    resetCameraBtn.addEventListener('click', () => {
+        solarSystem.resetCamera();
+    });
+    
     // 显示轨道
     const showOrbits = document.getElementById('show-orbits');
     showOrbits.addEventListener('change', (e) => {
@@ -64,6 +70,13 @@ function setupEventListeners() {
     
     // 点击行星显示信息
     setupPlanetClickDetection();
+    
+    // 按ESC键取消聚焦
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && solarSystem.focusedPlanet) {
+            solarSystem.unfocusPlanet();
+        }
+    });
 }
 
 function setupPlanetClickDetection() {
@@ -103,7 +116,13 @@ function setupPlanetClickDetection() {
             if (planetName && planetName !== 'moon') {
                 showPlanetInfo(planetName);
                 solarSystem.focusPlanet(planetName);
+            } else if (intersects.length === 0 && solarSystem.focusedPlanet) {
+                // 点击空白区域，取消聚焦
+                solarSystem.unfocusPlanet();
             }
+        } else if (solarSystem.focusedPlanet) {
+            // 点击空白区域，取消聚焦
+            solarSystem.unfocusPlanet();
         }
     }
     

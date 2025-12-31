@@ -12,6 +12,9 @@ class SolarSystem {
         this.isPaused = false;
         this.timeSpeed = 1.0;
         this.animationId = null;
+        this.focusedPlanet = null; // 当前聚焦的天体
+        this.focusOffset = null; // 聚焦时的相机偏移量
+        this.isFocusAnimating = false; // 是否正在执行聚焦动画
         
         // 天文数据（相对比例）
         this.planetData = {
@@ -559,7 +562,57 @@ class SolarSystem {
             this.sunLight.position.copy(this.planets.sun.position);
         }
         
-        // 更新控制器
+        // 如果正在聚焦某个天体，更新相机位置跟随天体移动
+        if (this.focusedPlanet && this.planets[this.focusedPlanet] && this.focusOffset) {
+            // 动画中：由动画函数控制相机位置，不在这里更新
+            if (this.isFocusAnimating) {
+                // 动画中，不更新，让动画函数完全控制
+                // 也不调用controls.update()，避免冲突
+                return;
+            }
+            
+            // 动画完成后：每帧跟随天体移动
+            const focusedPlanet = this.planets[this.focusedPlanet];
+            
+            // 更新控制器目标为天体当前位置（跟随天体移动）
+            this.controls.target.copy(focusedPlanet.position);
+            
+            // 更新相机位置，保持相对偏移（跟随天体移动）
+            const newCameraPosition = new THREE.Vector3().addVectors(focusedPlanet.position, this.focusOffset);
+            this.camera.position.copy(newCameraPosition);
+            
+            // 更新控制器的内部状态，使其与当前相机位置同步
+            // 这样控制器就不会覆盖我们的设置
+            const offset = new THREE.Vector3().subVectors(this.camera.position, this.controls.target);
+            if (this.controls.spherical) {
+                this.controls.spherical.setFromVector3(offset);
+                // 重置所有增量，防止累积
+                this.controls.spherical.theta = this.controls.spherical.theta;
+                this.controls.spherical.phi = this.controls.spherical.phi;
+                this.controls.spherical.radius = this.controls.spherical.radius;
+            }
+            if (this.controls.sphericalDelta) {
+                this.controls.sphericalDelta.set(0, 0, 0);
+            }
+            if (this.controls.panOffset) {
+                this.controls.panOffset.set(0, 0, 0);
+            }
+            if (this.controls.scale !== undefined) {
+                this.controls.scale = 1;
+            }
+            
+            // 确保相机朝向目标
+            this.camera.lookAt(this.controls.target);
+            
+            // 强制更新相机矩阵，确保位置生效
+            this.camera.updateMatrixWorld(true);
+            
+            // 不调用controls.update()，避免覆盖我们的设置
+            // 直接返回，不执行后面的controls.update()
+            return;
+        }
+        
+        // 非聚焦状态：正常更新控制器
         this.controls.update();
     }
     
@@ -601,6 +654,66 @@ class SolarSystem {
         });
     }
     
+    resetCamera() {
+        // 取消聚焦
+        this.unfocusPlanet();
+        
+        // 恢复到初始相机位置
+        const initialPosition = new THREE.Vector3(0, 200, 400);
+        const initialTarget = new THREE.Vector3(0, 0, 0);
+        
+        // 使用动画平滑过渡
+        const startPosition = this.camera.position.clone();
+        const startTarget = this.controls.target.clone();
+        const duration = 1500; // 1.5秒
+        const startTime = Date.now();
+        const self = this;
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3); // 缓动函数
+            
+            // 插值相机位置和目标
+            const currentPos = new THREE.Vector3().lerpVectors(startPosition, initialPosition, easeProgress);
+            const currentTarget = new THREE.Vector3().lerpVectors(startTarget, initialTarget, easeProgress);
+            
+            self.camera.position.copy(currentPos);
+            self.controls.target.copy(currentTarget);
+            
+            // 更新控制器的内部状态
+            const offset = new THREE.Vector3().subVectors(self.camera.position, self.controls.target);
+            if (self.controls.spherical) {
+                self.controls.spherical.setFromVector3(offset);
+            }
+            if (self.controls.sphericalDelta) {
+                self.controls.sphericalDelta.set(0, 0, 0);
+            }
+            if (self.controls.panOffset) {
+                self.controls.panOffset.set(0, 0, 0);
+            }
+            if (self.controls.scale !== undefined) {
+                self.controls.scale = 1;
+            }
+            
+            self.camera.lookAt(self.controls.target);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // 动画完成后，确保位置准确
+                self.camera.position.copy(initialPosition);
+                self.controls.target.copy(initialTarget);
+                if (self.controls.spherical) {
+                    const finalOffset = new THREE.Vector3().subVectors(self.camera.position, self.controls.target);
+                    self.controls.spherical.setFromVector3(finalOffset);
+                }
+            }
+        };
+        
+        animate();
+    }
+    
     focusPlanet(planetName) {
         if (!this.planets[planetName]) return;
         
@@ -612,40 +725,106 @@ class SolarSystem {
         // 相机距离设为天体半径的5-8倍，确保能看到完整的天体
         const cameraDistance = Math.max(planetRadius * 6, 5);
         
-        // 计算相机位置，从侧面观察
-        const targetPosition = new THREE.Vector3(
-            planet.position.x + cameraDistance * 0.7,
-            planet.position.y + cameraDistance * 0.3,
-            planet.position.z + cameraDistance * 0.7
+        // 计算相机相对天体的偏移量（从侧面观察）
+        const offset = new THREE.Vector3(
+            cameraDistance * 0.7,
+            cameraDistance * 0.3,
+            cameraDistance * 0.7
         );
+        
+        // 立即设置聚焦状态
+        this.focusedPlanet = planetName;
+        this.focusOffset = offset.clone();
+        this.isFocusAnimating = true; // 标记正在动画
         
         // 使用动画过渡
         const startPosition = this.camera.position.clone();
         const startTarget = this.controls.target.clone();
         const duration = 2000; // 2秒
         const startTime = Date.now();
+        const self = this;
         
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
             const easeProgress = 1 - Math.pow(1 - progress, 3); // 缓动函数
             
-            // 使用向量插值
-            const currentPos = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
-            const currentTarget = new THREE.Vector3().lerpVectors(startTarget, planet.position, easeProgress);
+            // 在动画过程中，实时获取天体的当前位置（因为天体在移动）
+            const currentPlanet = self.planets[planetName];
+            if (!currentPlanet) {
+                self.unfocusPlanet();
+                return;
+            }
             
-            this.camera.position.copy(currentPos);
-            this.controls.target.copy(currentTarget);
+            // 计算当前目标位置（跟随天体移动）
+            const currentTargetPos = currentPlanet.position.clone();
+            const currentCameraTargetPos = new THREE.Vector3().addVectors(currentPlanet.position, offset);
+            
+            // 使用向量插值
+            const currentPos = new THREE.Vector3().lerpVectors(startPosition, currentCameraTargetPos, easeProgress);
+            const currentTarget = new THREE.Vector3().lerpVectors(startTarget, currentTargetPos, easeProgress);
+            
+            self.camera.position.copy(currentPos);
+            self.controls.target.copy(currentTarget);
             
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                // 动画完成后，确保目标位置准确
-                this.controls.target.copy(planet.position);
+                // 动画完成后，确保目标位置准确，并允许update方法接管跟随
+                // 确保相机位置正确（使用当前天体位置）
+                const finalCameraPos = new THREE.Vector3().addVectors(currentPlanet.position, offset);
+                self.camera.position.copy(finalCameraPos);
+                self.controls.target.copy(currentPlanet.position);
+                self.camera.lookAt(self.controls.target);
+                
+                // 同步更新控制器的内部状态
+                const finalOffset = new THREE.Vector3().subVectors(self.camera.position, self.controls.target);
+                if (self.controls.spherical) {
+                    self.controls.spherical.setFromVector3(finalOffset);
+                }
+                if (self.controls.sphericalDelta) {
+                    self.controls.sphericalDelta.set(0, 0, 0);
+                }
+                if (self.controls.panOffset) {
+                    self.controls.panOffset.set(0, 0, 0);
+                }
+                if (self.controls.scale !== undefined) {
+                    self.controls.scale = 1;
+                }
+                
+                // 强制更新相机矩阵
+                self.camera.updateMatrixWorld(true);
+                
+                // 动画完成，允许跟随（必须在最后设置）
+                self.isFocusAnimating = false;
+                
+                // 立即执行一次跟随更新，确保位置正确
+                // 使用setTimeout确保在下一帧执行
+                setTimeout(() => {
+                    if (self.focusedPlanet && self.planets[self.focusedPlanet] && self.focusOffset) {
+                        const planet = self.planets[self.focusedPlanet];
+                        self.controls.target.copy(planet.position);
+                        const camPos = new THREE.Vector3().addVectors(planet.position, self.focusOffset);
+                        self.camera.position.copy(camPos);
+                        self.camera.lookAt(self.controls.target);
+                    }
+                }, 0);
             }
         };
         
         animate();
+    }
+    
+    // 取消聚焦
+    unfocusPlanet() {
+        this.focusedPlanet = null;
+        this.focusOffset = null;
+        this.isFocusAnimating = false;
+        
+        // 恢复控制器的正常更新
+        if (this.controls.update && this.controls._originalUpdate) {
+            this.controls.update = this.controls._originalUpdate;
+        }
     }
     
     toggleOrbits(show) {

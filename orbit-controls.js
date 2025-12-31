@@ -33,6 +33,10 @@
             this.scale = 1;
             this.panOffset = new THREE.Vector3();
             
+            // 限制垂直旋转角度（防止翻转）
+            this.minPolarAngle = 0; // 最小角度（顶部）
+            this.maxPolarAngle = Math.PI; // 最大角度（底部）
+            
             this.isRotating = false;
             this.isZooming = false;
             this.isPanning = false;
@@ -142,7 +146,26 @@
             },
             
             rotateUp: function(angle) {
-                this.sphericalDelta.phi -= angle;
+                // 先更新spherical以获取当前角度
+                const offset = new THREE.Vector3();
+                offset.copy(this.camera.position).sub(this.target);
+                this.spherical.setFromVector3(offset);
+                
+                // 在应用角度变化前，先检查当前角度
+                const currentPhi = this.spherical.phi;
+                const newPhi = currentPhi - angle;
+                
+                // 严格限制phi角度范围，防止相机翻转
+                const minPhi = (this.minPolarAngle !== undefined ? this.minPolarAngle : 0) + 0.01;
+                const maxPhi = (this.maxPolarAngle !== undefined ? this.maxPolarAngle : Math.PI) - 0.01;
+                
+                // 只有在不会超出范围时才应用角度变化
+                if (newPhi >= minPhi && newPhi <= maxPhi) {
+                    this.sphericalDelta.phi -= angle;
+                } else {
+                    // 如果会超出范围，不应用角度变化，并重置delta
+                    this.sphericalDelta.phi = 0;
+                }
             },
             
             update: function() {
@@ -154,11 +177,41 @@
                 this.spherical.phi += this.sphericalDelta.phi;
                 this.spherical.radius *= this.scale;
                 
+                // 严格限制phi角度范围，防止相机翻转（使用更严格的范围）
+                const minPhi = (this.minPolarAngle !== undefined ? this.minPolarAngle : 0) + 0.01;
+                const maxPhi = (this.maxPolarAngle !== undefined ? this.maxPolarAngle : Math.PI) - 0.01;
+                
+                // 限制phi角度，如果超出范围则重置delta
+                if (this.spherical.phi < minPhi) {
+                    this.spherical.phi = minPhi;
+                    this.sphericalDelta.phi = 0;
+                } else if (this.spherical.phi > maxPhi) {
+                    this.spherical.phi = maxPhi;
+                    this.sphericalDelta.phi = 0;
+                } else {
+                    // 正常范围内，应用限制
+                    this.spherical.phi = Math.max(minPhi, Math.min(maxPhi, this.spherical.phi));
+                }
+                
+                // 确保半径不为0，防止相机穿过目标点
+                if (this.spherical.radius < 0.01) {
+                    this.spherical.radius = 0.01;
+                }
+                
+                // 限制半径范围
                 this.spherical.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this.spherical.radius));
                 
                 this.target.add(this.panOffset);
                 
                 offset.setFromSpherical(this.spherical);
+                
+                // 确保偏移向量有效，防止相机位置异常
+                if (offset.length() < 0.01) {
+                    // 如果偏移太小，重置为默认位置
+                    this.spherical.set(1, Math.PI / 2, 0);
+                    offset.setFromSpherical(this.spherical);
+                }
+                
                 this.camera.position.copy(this.target).add(offset);
                 this.camera.lookAt(this.target);
                 
