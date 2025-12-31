@@ -21,9 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupLanguageToggle() {
     const langToggle = document.getElementById('lang-toggle');
 
-    // 初始化按钮文字
+    // 初始化按钮文字和所有UI文字
     const texts = i18n[currentLanguage];
     langToggle.textContent = '🌐 ' + texts.langButton;
+
+    // 初始化所有UI文字
+    updateUI();
 
     langToggle.addEventListener('click', () => {
         // 切换语言
@@ -32,9 +35,6 @@ function setupLanguageToggle() {
         // 更新所有文本
         updateUI();
     });
-
-    // 初始化时设置提示文字
-    resetInfoPanel();
 }
 
 // 更新UI文字
@@ -240,11 +240,6 @@ function showPlanetInfo(planetName) {
     const data = solarSystem.planetData[planetName];
     const info = data.info;
 
-    console.log('showPlanetInfo called with:', planetName);
-    console.log('info data:', info);
-    console.log('i18n:', i18n);
-    console.log('currentLanguage:', currentLanguage);
-
     // 安全检查
     if (typeof i18n === 'undefined' || !i18n[currentLanguage]) {
         console.error('i18n not available');
@@ -253,7 +248,6 @@ function showPlanetInfo(planetName) {
     }
 
     const texts = i18n[currentLanguage];
-    console.log('texts:', texts);
 
     infoTitle.textContent = texts.planets[planetName] || data.name;
 
@@ -262,7 +256,6 @@ function showPlanetInfo(planetName) {
     // 遍历info对象的所有属性
     for (const key in info) {
         if (info.hasOwnProperty(key)) {
-            console.log('Processing key:', key, 'value:', info[key]);
             const label = getInfoLabel(key);
             let value = info[key];
 
@@ -277,8 +270,6 @@ function showPlanetInfo(planetName) {
         }
     }
 
-    console.log('Generated html:', html);
-
     // 添加额外信息（仅对行星，太阳distance为0）
     if (data.distance > 0) {
         html += `<p><strong>${texts.distanceToSun}：</strong>${data.distance} ${texts.pageUnit}</p>`;
@@ -286,10 +277,6 @@ function showPlanetInfo(planetName) {
     html += `<p><strong>${texts.radius}：</strong>${data.radius} ${texts.pageUnit}</p>`;
 
     infoContent.innerHTML = html;
-    console.log('infoContent.innerHTML set');
-    console.log('infoContent element:', infoContent);
-    console.log('infoContent offsetHeight:', infoContent.offsetHeight);
-    console.log('infoContent computed style:', window.getComputedStyle(infoContent));
 }
 
 function getInfoLabel(key) {

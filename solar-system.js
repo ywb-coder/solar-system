@@ -771,7 +771,7 @@ class SolarSystem {
         // 使用动画过渡
         const startPosition = this.camera.position.clone();
         const startTarget = this.controls.target.clone();
-        const duration = 2000; // 2秒
+        const duration = 1500; // 1.5秒，更快一点
         const startTime = Date.now();
         const self = this;
         
@@ -828,7 +828,7 @@ class SolarSystem {
                 
                 // 动画完成，允许跟随（必须在最后设置）
                 self.isFocusAnimating = false;
-                
+
                 // 立即执行一次跟随更新，确保位置正确
                 // 使用setTimeout确保在下一帧执行
                 setTimeout(() => {
